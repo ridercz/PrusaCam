@@ -12,21 +12,20 @@
    INTERVAL_DOT = show "." on serial every X ms
    INTERVAL_SHUTTER = press shutter every X ms
 */
-#define USE_INTERVAL
-#define INTERVAL_DOT                        1000  // ms
+//#define USE_INTERVAL
 #define INTERVAL_SHUTTER                    30000 // ms
 
 /* Trigger pin feature configuration
    ---------------------------------
    USE_TRIGGER = define to enable triggered shooting
-   TRIGGER_ON_PRESS = true to trigger on switching from low to high
-   TRIGGER_ON_RELEASE = true to trigger on switching from high to low
+   TRIGGER_ON_LH = true to trigger on switching from low to high
+   TRIGGER_ON_HL = true to trigger on switching from high to low
    TRIGGER_PIN = GPIO pin used for trigger
 */
 #define USE_TRIGGER
 #define TRIGGER_PIN                         5
-#define TRIGGER_ON_PRESS                    true
-#define TRIGGER_ON_RELEASE                  false
+#define TRIGGER_ON_LH                       true
+#define TRIGGER_ON_HL                       false
 
 /* Bluefruit BLE module configuration
    ----------------------------------

@@ -1,25 +1,23 @@
 /* Altairis PrusaCam Feather BT version 1.0.0 (2019-02-28)
- * Copyright (c) Michal A. Valasek - Altairis, 2019 
- * Licensed under terms of the MIT License.
- * www.rider.cz | www.altairis.cz | github.com/ridercz/PrusaCam
- */
-  
+   Copyright (c) Michal A. Valasek - Altairis, 2019
+   Licensed under terms of the MIT License.
+   www.rider.cz | www.altairis.cz | github.com/ridercz/PrusaCam
+*/
+
 #include <Arduino.h>
 #include <SPI.h>
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
-#include <Pushbutton.h>
 #include "PrusaCamConfig.h"
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
 #ifdef USE_INTERVAL
-unsigned long nextDotMillis = 0;
 unsigned long nextShutterMillis = 0;
 #endif
 
 #ifdef USE_TRIGGER
-Pushbutton trigger(TRIGGER_PIN);
+bool lastTriggerState = false;
 #endif
 
 void setup() {
@@ -39,16 +37,17 @@ void setup() {
 
   // Check if there is either interval or trigger
   bool hasSomethigToRunOn = false;
-  
+
 #ifdef USE_TRIGGER
   Serial.print(F("Trigger enabled on pin "));
   Serial.println(TRIGGER_PIN);
-  if (TRIGGER_ON_PRESS || TRIGGER_ON_RELEASE) {
-    if (TRIGGER_ON_PRESS) Serial.println(F("Trigger on press enabled."));
-    if (TRIGGER_ON_RELEASE) Serial.println(F("Trigger on release enabled."));
+  pinMode(TRIGGER_PIN, INPUT);
+  if (TRIGGER_ON_LH || TRIGGER_ON_HL) {
+    if (TRIGGER_ON_LH) Serial.println(F("Trigger on LH enabled."));
+    if (TRIGGER_ON_HL) Serial.println(F("Trigger on HL enabled."));
     hasSomethigToRunOn = true;
   } else {
-    Serial.println(F("WARNING: Neither TRIGGER_ON_PRESS nor TRIGGER_ON_RELEASE is set to true. Trigger is effectively disabled."));
+    Serial.println(F("WARNING: Neither TRIGGER_ON_LH nor TRIGGER_ON_HL is set to true. Trigger is effectively disabled."));
   }
 #endif
 
@@ -71,34 +70,26 @@ void setup() {
 
 void loop() {
 #ifdef USE_TRIGGER
-  if (TRIGGER_ON_PRESS && trigger.getSingleDebouncedPress()) {
-    Serial.println();
-    Serial.println(F("Trigger pin pressed!"));
-    pressShutter();
-  }
-  if (TRIGGER_ON_RELEASE && trigger.getSingleDebouncedRelease()) {
-    Serial.println();
-    Serial.println(F("Trigger pin released!"));
-    pressShutter();
+  bool currentTriggerState = digitalRead(TRIGGER_PIN);
+  if (lastTriggerState != currentTriggerState) {
+    if (TRIGGER_ON_LH && currentTriggerState) {
+      Serial.print("Trigger (LH) detected: ");
+      pressShutter();
+    }
+    if (TRIGGER_ON_HL && !currentTriggerState) {
+      Serial.print("Trigger (HL) detected: ");
+      pressShutter();
+    }
+    lastTriggerState = currentTriggerState;
   }
 #endif
 
 #ifdef USE_INTERVAL
   // Press shutter every INTERVAL_SHUTTER ms
   if (millis() >= nextShutterMillis) {
-    Serial.println();
-
     pressShutter();
-
-    Serial.print(F("Waiting"));
+    Serial.println(F("Waiting..."));
     nextShutterMillis = millis() + INTERVAL_SHUTTER;
-    nextDotMillis = millis() + INTERVAL_DOT;
-  }
-
-  // Print dot every INTERVAL_DOT ms to show we're alive
-  if (millis() >= nextDotMillis) {
-    Serial.print(".");
-    nextDotMillis = millis() + INTERVAL_DOT;
   }
 #endif
 }
