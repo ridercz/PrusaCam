@@ -13,16 +13,16 @@ battery_connector_hole = true;
 cable_size = [3, 6];
 cable_hole = true;
 top_height = 25;
-bottom_height = 10;
-bottom_lip = 2;
+bottom_height = 13;
+bottom_lip = 4;
 wth = 1.60;
 wtv = 1.67;
 outer_radius = 5;
-vsig = ["PRUSACAM", "FEATHER BT V1.0", "RIDER.CZ 2019"];
+vsig = ["PRUSACAM", "FEATHER BT V1.1", "RIDER.CZ 2019"];
 fudge = 1;
 
 translate([0, 50]) bottom();
-!top();
+top();
 
 module top() {
     outer_size = [
