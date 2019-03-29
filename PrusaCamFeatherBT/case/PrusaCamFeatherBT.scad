@@ -1,19 +1,21 @@
-// Board dimensions taken from https://learn.adafruit.com/assets/28667
-in = 25.4;
-board_size = [2 * in, .9 * in, 1.6];
+// Case configuration - enable or disable holes
+usb_connector_hole = true;
+battery_connector_hole = false;
+cable_hole = true;
+
+// Case dimensions 
+in = 25.4; // Board dimensions taken from https://learn.adafruit.com/assets/28667 and specified in inches
+board_size = [2 * in, .9 * in, 1.6]; 
 board_clearance = 1;
 board_hole_span = [1.8 * in, 0.7 * in];
 board_hole_diameter = 2.2;
 board_pin_span = .8 * in;
 usb_size = [8, 4];
-usb_connector_hole = true;
 battery_connector_pos = 0.42 * in;
 battery_connector_size = [8, 6.5];
-battery_connector_hole = true;
-cable_size = [3, 6];
-cable_hole = true;
+cable_size = [3, 8.5];
 top_height = 25;
-bottom_height = 13;
+bottom_height = 14;
 bottom_lip = 4;
 holder_width = 50;
 holder_hole_span = 43;
@@ -22,12 +24,12 @@ holder_nut_diameter = 5.5;
 wth = 1.60;
 wtv = 1.67;
 outer_radius = 5;
-vsig = ["PRUSACAM", "FEATHER BT V1.1", "RIDER.CZ 2019"];
+vsig = ["PRUSACAM", "FEATHER BT V1.2", "RIDER.CZ 2019"];
 fudge = 1;
 
 translate([0, 90]) bottom();
 translate([0, 50]) top();
-!holder();
+holder();
 
 module holder() {
     holder_size = [
@@ -132,7 +134,7 @@ module bottom(hollow = false) {
     pillar_diameter = board_hole_diameter + 2 * wtv;
     for(x = [-board_hole_span[0] / 2, board_hole_span[0] / 2], y = [-board_hole_span[1] / 2, board_hole_span[1] / 2]) {
         translate([x, y, wth]) difference() {
-            cylinder(d = pillar_diameter, h = bottom_height - bottom_lip, $fn = 32);
+            cylinder(d = pillar_diameter, h = bottom_height - bottom_lip - board_size[2], $fn = 32);
             translate([0, 0, -fudge]) rotate(180 / 8) cylinder(d = board_hole_diameter, h = bottom_height + 2 * fudge, $fn = 8);
         }
     }
