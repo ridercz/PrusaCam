@@ -2,9 +2,11 @@
    ---------------------
    INITIAL_DELAY = delay after reset to initialize serial port in ms
    PERFORM_FACTORY_RESET = define to perform BT module factory reset on restart
+   SHUTTER_MIN_INTERVAL = minimum interval between shutter presses
 */
-#define INITIAL_DELAY                       500 // ms
+#define INITIAL_DELAY                       1000 // ms
 //#define PERFORM_FACTORY_RESET
+#define SHUTTER_MIN_INTERVAL                10000 // ms
 
 /* Interval shooting feature configuration
    ---------------------------------------

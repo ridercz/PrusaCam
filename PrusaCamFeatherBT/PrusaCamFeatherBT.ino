@@ -1,4 +1,4 @@
-/* Altairis PrusaCam Feather BT version 1.0.0 (2019-02-28)
+/* Altairis PrusaCam Feather BT version 1.0.0 (2019-03-29)
    Copyright (c) Michal A. Valasek - Altairis, 2019
    Licensed under terms of the MIT License.
    www.rider.cz | www.altairis.cz | github.com/ridercz/PrusaCam
@@ -11,6 +11,8 @@
 #include "PrusaCamConfig.h"
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
+bool serialAvailable = false;
+unsigned long nextShutterMin = 0;
 
 #ifdef USE_INTERVAL
 unsigned long nextShutterMillis = 0;
@@ -25,46 +27,54 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, true);
 
-  // Initialize
-  while (!Serial);
+  // Initialize serial port
   Serial.begin(9600);
-  delay(INITIAL_DELAY);
-  Serial.println(F("Altairis PrusaCam Feather BT version 1.0.0"));
-  Serial.println(F("Copyright (c) Michal A. Valasek - Altairis, 2019"));
-  Serial.println(F("              www.rider.cz | www.altairis.cz | github.com/ridercz/PrusaCam"));
-  Serial.println();
+  while (true) {
+    if (Serial) {
+      serialAvailable = true;
+      break;
+    }
+    if (millis() > INITIAL_DELAY) break;
+  }
+
+  logPrintLn(F("Altairis PrusaCam Feather BT version 1.0.0"));
+  logPrintLn(F("Copyright (c) Michal A. Valasek - Altairis, 2019"));
+  logPrintLn(F("              www.rider.cz | www.altairis.cz | github.com/ridercz/PrusaCam"));
+  logPrintLn();
+
+  // Initialize Bluetooth
   initBLE();
 
   // Check if there is either interval or trigger
   bool hasSomethigToRunOn = false;
 
 #ifdef USE_TRIGGER
-  Serial.print(F("Trigger enabled on pin "));
-  Serial.println(TRIGGER_PIN);
+  logPrint(F("Trigger enabled on pin "));
+  logPrintLn(TRIGGER_PIN);
   pinMode(TRIGGER_PIN, INPUT);
   if (TRIGGER_ON_LH || TRIGGER_ON_HL) {
-    if (TRIGGER_ON_LH) Serial.println(F("Trigger on LH enabled."));
-    if (TRIGGER_ON_HL) Serial.println(F("Trigger on HL enabled."));
+    if (TRIGGER_ON_LH) logPrintLn(F("Trigger on LH enabled."));
+    if (TRIGGER_ON_HL) logPrintLn(F("Trigger on HL enabled."));
     hasSomethigToRunOn = true;
   } else {
-    Serial.println(F("WARNING: Neither TRIGGER_ON_LH nor TRIGGER_ON_HL is set to true. Trigger is effectively disabled."));
+    logPrintLn(F("WARNING: Neither TRIGGER_ON_LH nor TRIGGER_ON_HL is set to true. Trigger is effectively disabled."));
   }
 #endif
 
 #ifdef USE_INTERVAL
-  Serial.print(F("Inteval enabled, time (ms) = "));
-  Serial.println(INTERVAL_SHUTTER);
+  logPrint(F("Inteval enabled, time (ms) = "));
+  logPrintLn(INTERVAL_SHUTTER);
   hasSomethigToRunOn = true;
 #endif
 
   if (!hasSomethigToRunOn) {
-    Serial.println(F("CONFIGURATION ERROR: There are no conditions for shutter defined, so the shutter will never be pressed."));
-    Serial.println(F("System halted."));
+    logPrintLn(F("CONFIGURATION ERROR: There are no conditions for shutter defined, so the shutter will never be pressed."));
+    logPrintLn(F("System halted."));
     while (1);
   }
 
   // Turn off LED
-  Serial.println(F("Initialization done, system ready."));
+  logPrintLn(F("Initialization done, system ready."));
   digitalWrite(LED_BUILTIN, false);
 }
 
@@ -73,11 +83,11 @@ void loop() {
   bool currentTriggerState = digitalRead(TRIGGER_PIN);
   if (lastTriggerState != currentTriggerState) {
     if (TRIGGER_ON_LH && currentTriggerState) {
-      Serial.print("Trigger (LH) detected: ");
+      logPrint("Trigger (LH) detected: ");
       pressShutter();
     }
     if (TRIGGER_ON_HL && !currentTriggerState) {
-      Serial.print("Trigger (HL) detected: ");
+      logPrint("Trigger (HL) detected: ");
       pressShutter();
     }
     lastTriggerState = currentTriggerState;
@@ -88,76 +98,110 @@ void loop() {
   // Press shutter every INTERVAL_SHUTTER ms
   if (millis() >= nextShutterMillis) {
     pressShutter();
-    Serial.println(F("Waiting..."));
+    logPrintLn(F("Waiting..."));
     nextShutterMillis = millis() + INTERVAL_SHUTTER;
   }
 #endif
 }
 
 void initBLE() {
-  Serial.print(F("Initializing the Bluetooth module..."));
+  logPrint(F("Initializing the Bluetooth module..."));
   if (!ble.begin(BLUEFRUIT_VERBOSE_MODE)) {
-    Serial.println(F("Failed!"));
+    logPrintLn(F("Failed!"));
     while (1);
   }
-  Serial.println(F("OK"));
+  logPrintLn(F("OK"));
 
-  // Disable command echo
-  ble.echo(false);
-
-  // Display module info
-  ble.info();
+  if (serialAvailable) {
+    // Disable command echo
+    ble.echo(false);
+    // Display module info
+    ble.info();
+  }
 
 #ifdef PERFORM_FACTORY_RESET
-  Serial.print(F("Performing a factory reset..."));
+  logPrint(F("Performing a factory reset..."));
   if (!ble.factoryReset()) {
-    Serial.println(F("Failed!"));
+    logPrintLn(F("Failed!"));
     while (1);
   }
-  Serial.println(F("OK"));
+  logPrintLn(F("OK"));
 #endif
 
   // Firmware version 0.6.6+ required
   if (!ble.isVersionAtLeast(BLUEFRUIT_MINIMUM_FIRMWARE_VERSION)) {
-    Serial.println(F("This sketch requires firmware version "BLUEFRUIT_MINIMUM_FIRMWARE_VERSION" or higher!"));
+    logPrintLn(F("This sketch requires firmware version "BLUEFRUIT_MINIMUM_FIRMWARE_VERSION" or higher!"));
     while (1);
   }
 
-  Serial.print(F("Setting device name to 'Altairis PrusaCam Feather BT'..."));
+  logPrint(F("Setting device name to 'Altairis PrusaCam Feather BT'..."));
   if (!ble.sendCommandCheckOK(F("AT+GAPDEVNAME=Altairis PrusaCam Feather BT"))) {
-    Serial.println(F("Failed!"));
+    logPrintLn(F("Failed!"));
     while (1);
   }
-  Serial.println(F("OK"));
+  logPrintLn(F("OK"));
 
-  Serial.print(F("Enabling HID Services..."));
+  logPrint(F("Enabling HID Services..."));
   if (!ble.sendCommandCheckOK(F("AT+BLEHIDEN=On"))) {
-    Serial.println(F("Failed!"));
+    logPrintLn(F("Failed!"));
     while (1);
   }
-  Serial.println(F("OK"));
+  logPrintLn(F("OK"));
 
-  Serial.print(F("Applying changes..."));
+  logPrint(F("Applying changes..."));
   if (!ble.reset()) {
-    Serial.println(F("Failed!"));
+    logPrintLn(F("Failed!"));
     while (1);
   }
-  Serial.println(F("OK"));
+  logPrintLn(F("OK"));
 }
 
 void pressShutter() {
+  if (millis() < nextShutterMin) {
+    logPrintLn(F("Ignoring shutter request, too early after previous one."));
+    return;
+  }
+
   // Turn on LED during shutter press
   digitalWrite(LED_BUILTIN, true);
 
   // Send VOLUME+
-  Serial.print(F("Pressing shutter..."));
+  logPrint(F("Pressing shutter..."));
   ble.println(F("AT+BleHidControlKey=VOLUME+"));
   if (!ble.waitForOK()) {
-    Serial.println(F("Failed! (maybe not paired?)"));
+    logPrintLn(F("Failed! (maybe not paired?)"));
   } else {
-    Serial.println(F("OK"));
+    logPrintLn(F("OK"));
   }
 
   // Turn off LED
   digitalWrite(LED_BUILTIN, false);
+
+  // Set minimum time for next shutter
+  nextShutterMin = millis() + SHUTTER_MIN_INTERVAL;
+}
+
+void logPrintLn() {
+  if (!serialAvailable) return;
+  Serial.println();
+}
+
+void logPrintLn(char* s) {
+  if (!serialAvailable) return;
+  Serial.println(s);
+}
+
+void logPrintLn(String s) {
+  if (!serialAvailable) return;
+  Serial.println(s);
+}
+
+void logPrint(String s) {
+  if (!serialAvailable) return;
+  Serial.print(s);
+}
+
+void logPrint(char* s) {
+  if (!serialAvailable) return;
+  Serial.print(s);
 }
