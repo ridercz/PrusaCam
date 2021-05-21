@@ -148,7 +148,7 @@ module bottom(hollow = false) {
 }
 
 module rcube(size, radius) {
-    if(len(radius) == undef) {
+    if(!is_list(radius)) {
         // The same radius on all corners
         rcube(size, [radius, radius, radius, radius]);
     } else if(len(radius) == 2) {
