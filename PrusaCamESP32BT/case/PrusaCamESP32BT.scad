@@ -4,7 +4,7 @@ board_clearance = .5;
 cable_size = [3, 8.5];
 
 /* [Top part] */
-top_height = 25;
+top_height = 15;
 
 /* [Bottom part] */
 bottom_height = 14;
@@ -13,19 +13,19 @@ bottom_lip = 4;
 /* [Holder plate] */
 holder_width = 50;
 holder_hole_span = 43;
-holder_hole_diameter = 2.5;
+holder_hole_diameter = 3;
 holder_nut_diameter = 5.5;
 
 /* [Hidden] */
 wth = 1.60;
 wtv = .86;
 outer_radius = 5;
-vsig = ["PRUSACAM", "ESP32 BT/1.0", "RIDER.CZ 2021"];
+vsig = ["PRUSACAM", "ESP32 BT/1.2", "RIDER.CZ 2021"];
 $fudge = 1;
 
 // Render all
 
-translate([0, 100]) !bottom();
+translate([0, 100]) bottom();
 translate([0, 50]) top();
 holder();
 
@@ -44,12 +44,6 @@ module holder() {
 
         // Screw holes
         for(y = [-holder_hole_span / 2, holder_hole_span / 2]) translate([0, y, -$fudge]) cylinder(d = holder_hole_diameter, h = 2 * wth + 2 * $fudge, $fn = 16);
-    }
-
-    // Nut holders    
-    for(y = [-holder_hole_span / 2, holder_hole_span / 2]) translate([0, y, wth]) difference() {
-        cylinder(d = holder_nut_diameter + wtv, h = wth, $fn = 6);
-        translate([0, 0, -$fudge]) cylinder(d = holder_nut_diameter, h = wth + 2 * $fudge, $fn = 6);
     }
 }
 
