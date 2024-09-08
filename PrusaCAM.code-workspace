@@ -2,6 +2,10 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"name": "PrusaCamMK4-Firmware",
+			"path": "MK4/PrusaCamMK4-Firmware"
 		}
 	],
 	"settings": {}
