@@ -1,8 +1,6 @@
-# PrusaCam
+# PrusaCAM Timelapse Trigger
 
-PrusaCam is solution for controlling timelapse cameras from **Prusa i3 MK3** 3D printer by Prusa Research.
+This is project for making timelapse photos of 3D printing using a common mobile phone, triggered by the printer itself using Bluetooth.
 
-* **[PrusaCam Feather BT](PrusaCamFeatherBT)** is Bluetooth LE trigger for controlling cellphone cameras, based on _Adafruit Feather 32u4 Bluefruit LE_ board.
-* **[PrusaCam ESP32 BT](PrusaCamESP32BT)** is another Bluetooth LE trigger, this time based on ESP32, which is cheaper and more easily available than the Adafruit Feather**
-* **[PrusaCAM USB](PrusaCamUSB)** is smartphone camera controller that emulates USB keyboard.
-* **PrusaCamESP32** will be self-contained camera based on ESC32-CAM board.
+* [Prusa MK3 family](MK3) has some GPIO pins available that can be controlled using G-Code.
+* [Prusa MK4 family](MK4) has I2C expansion port to which a [special board](https://help.prusa3d.com/article/gpio-module_734695) can be connected.
